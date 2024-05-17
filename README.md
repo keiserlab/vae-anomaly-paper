@@ -15,4 +15,9 @@ We radially survey the outlier regions of the latent space of a Variational Auto
 - Amongst the null models, naive random generates SELFIES sets with 73.88% validity (constant rate), shuffle random with 99.71% validity, and index-token distribution random with 99.91% validity. The VAE latent space, when surveyed at a generative radius of 61.0, decodes SELFIES sets with only 11.24% validity, which outperforms the naive random method at validity minimization by a margin of 62.64%. Furthermore, the generative radial domain of 28.0 < R < 1000.0 consistently outperformed the naive random method at minimizing validity percentage in generated SELFIES sets -- establishing an applicability domain for the VAE's fuzz testing abilities over SELFIES robustness.
 - On tracing sources of error in invalid SELFIES, we identified two “troublesome” atom tokens ([Na+1] and [K+1]) that were consistently bonded beyond their valid valences and consequently yielded invalid SMILES. However, the errors were fixable using manual valence correction consistent with the module’s otherwise automatic bond-correcting approach.
 
-  
+### Dependencies
+
+```python 
+rdkit
+tensorflow
+```

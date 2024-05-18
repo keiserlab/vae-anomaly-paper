@@ -17,7 +17,12 @@ We radially survey the outlier regions of the latent space of a Variational Auto
 
 ### Dependencies
 
-```python 
-rdkit
-tensorflow
+```python
+- selfies==2.1.1
+- rdkit
+- tensorflow==2.10.0
+- numpy
+- deepchem
+- matplotlib
+- scipy
 ```

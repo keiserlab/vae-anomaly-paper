@@ -26,3 +26,6 @@ We radially survey the outlier regions of the latent space of a Variational Auto
 - matplotlib
 - scipy
 ```
+### Generation Demo
+
+To add... 

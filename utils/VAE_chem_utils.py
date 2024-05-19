@@ -21,8 +21,6 @@ from rdkit.Avalon import pyAvalonTools
 
 from sascorer import calculateScore
 
-from SmilesEnumerator import SmilesEnumerator
-
 from typing import List, Dict, Tuple, Set, Union, NewType
 
 #import mol2vec
@@ -546,30 +544,9 @@ def tanimoto_avalonfp_sim(smiles1: SMILES,
     
     return DataStructs.TanimotoSimilarity(fp1, fp2)
 
-# Graph edit distance
-# By Jan H. Jensen, 2020
-# Time increases exponentially with molecular size, impractical for large molecules
-def get_graph(mol: Chem.Mol) -> nx.Graph:
-    
-    Chem.Kekulize(mol)
-    atoms = [atom.GetAtomicNum() for atom in mol.GetAtoms()]
-    am = Chem.GetAdjacencyMatrix(mol, useBO=True)
-    for i,atom in enumerate(atoms):
-        am[i,i] = atom
-    G = nx.from_numpy_matrix(am)
-    
-    return G
 
-def graph_edit_distance(smiles1: SMILES,
-                        smiles2: SMILES) -> float:
-    
-    mol1 = Chem.MolFromSmiles(smiles1)
-    mol2 = Chem.MolFromSmiles(smiles2) 
-    G1 = get_graph(mol1)
-    G2 = get_graph(mol2)
-    GDE = nx.graph_edit_distance(G1, G2, edge_match=lambda a, b: a['weight'] == b['weight'])
-    
-    return GDE
+
+
 
 def inchi_from_smiles(smiles: SMILES) -> str:
     
@@ -587,29 +564,6 @@ def substructure_matches(smiles: SMILES,
     matches = mol.GetSubstructMatches(mol_subs)
     
     return matches
-
-def qed_default(smiles):
-    return qed.default(Chem.MolFromSmiles(smiles))
-
-def num_aromatic_rings(smiles):
-    return rdMolDescriptors.CalcNumAromaticRings(Chem.MolFromSmiles(smiles))
-
-def num_hbond_donors(smiles):
-    return rdMolDescriptors.CalcNumHBD(Chem.MolFromSmiles(smiles))
-
-def PSA(smiles):
-    return rd_qed.properties(Chem.MolFromSmiles(smiles))[4]
-
-def logP(smiles):
-    return Crippen.MolLogP(Chem.MolFromSmiles(smiles))
-
-def sa_score(smiles):
-    return calculateScore(Chem.MolFromSmiles(smiles))
-
-def add_double_bond_noise_smiles(smiles):
-    original_selfies = sf.encoder(smiles)
-    noisy_selfies = original_selfies.replace('=', '')
-    return sf.decoder(noisy_selfies)
 
 def parse_tokens_from_string_list(string_list,
                                   tokenizer):
@@ -632,12 +586,6 @@ def compute_property_smiles_dict(smiles_dict: dict,
         print('-'*50)
     return property_dict
 
-def is_selfies(chemical_string: str,
-               tokenizer) -> bool:
-    
-    "Checks if string is SELFIES"
-    
-    return all([substring.startswith('[') for substring in tokenizer.tokenize(chemical_string)])
 
 def remove_wildcard_from_smarts(smarts: SMILES,
                                 tokenizer) -> SMILES:
@@ -657,44 +605,7 @@ def merge_frag_to_string(base_str: Union[SMILES, SELFIES],
     if pos not in ["start", "end"]:
         raise ValueError("pos must be one of start or end")
     
-    return base_str + to_merge if pos == 'end' else to_merge + base_str
-
-sme = SmilesEnumerator()
-def enumerate_single_selfies(selfies: SELFIES,
-                             num_to_randomize : int = 5) -> SELFIES:
-    
-    smiles = sf.decoder(selfies)
-    randomized_smiles = random.sample([sme.randomize_smiles(smiles) for _ in range(num_to_randomize)], 1)[0]
-    randomized_selfies = sf.encoder(randomized_smiles)
-    
-    return randomized_selfies
-
-def enumerate_selfies_list_no_identical(selfies_list: SELFIES,
-                                        num_randomized: int = 5):
-    
-    """
-    Enumerate SELFIES list, filter out SELFIES which enumerated to the
-    same string after num_randomized trials
-    """
-    
-    new_selfies_list, enumerated_selfies_list = [], []
-    
-    for selfie in selfies_list:
-        for _ in range(num_randomized):
-            enumerated_selfie = enumerate_single_selfies(selfie)
-            if enumerated_selfie != selfie:
-                enumerated_selfies_list.append(enumerated_selfie)
-                new_selfies_list.append(selfie)
-                break
-            
-    return new_selfies_list, enumerated_selfies_list
-
-def create_canonical_enumerated_selfies_lists(selfies_list: SELFIES):
-    
-    new_selfies_list, enumerated_selfies_list = enumerate_selfies_list_no_identical(selfies_list)
-    canonical_selfies_list = canonicalize_selfies_batch(new_selfies_list)
-    
-    return canonical_selfies_list, enumerated_selfies_list
+    return base_str + to_merge if pos == 'end' else to_merge + base_st
                 
 
 def num_unique_structures(string_list: List[Union[SMILES, SELFIES]]) -> int:
@@ -705,128 +616,6 @@ def num_unique_structures(string_list: List[Union[SMILES, SELFIES]]) -> int:
     inchi_list = [inchi_from_smiles(s) for s in string_list]
     
     return len(set(inchi_list))
-
-def new_tokens_in_transformed_string_list(base_string_list: List[str],
-                                          transformed_string_list: List[str],
-                                          tokenizer):
-    
-    """
-    
-    Parameters
-    ----------
-    base_string_list : List[str]
-        String list (SMILES or SELFIES) that is transformed, eg. enumeration or noising
-        
-    transformed_string_list : List[str]
-        Transformed string list (SMILES or SELFIES) - by enumeration, noising etc.
-        
-    tokenizer : function
-        Tokenizer that parses string into constituent tokens (deepchem function)
-
-    Returns
-    -------
-    new_tokens_in_transformed: set
-        new tokens in transformed set absent from the base set
-
-    """
-    
-    if not is_selfies(base_string_list[0]) == is_selfies(transformed_string_list[0]):
-        raise ValueError("Base string list and transformed string list is of different types, both must be either SMILES or SELFIES")
-        
-    base_token_set = parse_tokens_from_string_list(string_list = base_string_list,
-                                                   tokenizer = tokenizer)
-    
-    transformed_token_set = parse_tokens_from_string_list(string_list = transformed_string_list,
-                                                          tokenizer = tokenizer)
-    
-    return transformed_token_set.difference(base_token_set)
-
-
-def string_list_pair_identical_token_set(base_string_list: List[str],
-                                         transformed_string_list: List[str],
-                                         tokenizer):
-    
-    """
-    Check if base string list and transformed string list share the same token set
-    """
-    
-    new_token_set = new_tokens_in_transformed_string_list(base_string_list = base_string_list,
-                                                          transformed_string_list = transformed_string_list,
-                                                          tokenizer = tokenizer)
-    
-    return len(new_token_set) == 0
-
-def enumerate_selfies_list(selfies_list: List[SELFIES],
-                           tokenizer,
-                           enforce_same_token_set: bool = True) -> List[SELFIES]:
-    
-    if enforce_same_token_set:
-        
-        enumerated_selfies_list = []
-        new_selfies_list = []
-        
-        for selfies in selfies_list:
-            enumerated_selfies = enumerate_single_selfies(selfies)
-            selfies_token_set = parse_tokens_from_string_list(string_list = [selfies],
-                                                              tokenizer = tokenizer)
-            
-            enumerated_selfies_token_set = parse_tokens_from_string_list(string_list = [enumerated_selfies],
-                                                                         tokenizer = tokenizer)
-            
-            if selfies_token_set == enumerated_selfies_token_set:
-                enumerated_selfies_list.append(enumerated_selfies)
-                new_selfies_list.append(selfies)
-                
-    else:
-        
-        enumerated_selfies_list = [enumerate_single_selfies(s) for s in selfies_list]
-        new_selfies_list = selfies_list
-        
-    return new_selfies_list, enumerated_selfies_list
-
-
-def all_enumerable_selfies_for_single_selfies(selfies: SELFIES,
-                                              max_consec_no_new_count = 5):
-    
-
-    
-    num_consec_trials_no_new = 0
-    enumerated_set = set()
-    
-    while num_consec_trials_no_new < max_consec_no_new_count:
-        
-        enumerated_selfies = enumerate_single_selfies(selfies)
-        
-        enum_set_len = len(enumerated_set)
-        enumerated_set.add(enumerated_selfies)
-        
-        if len(enumerated_set) > enum_set_len:
-            num_consec_trials_no_new = 0
-        else:
-            num_consec_trials_no_new += 1
-    
-    return enumerated_set
-
-def new_tokens_in_all_enumerated_selfies(selfies: SELFIES,
-                                         tokenizer):
-    
-    all_enumerated_selfies = all_enumerable_selfies_for_single_selfies(selfies = selfies)
-    
-    all_enumerated_selfies_token_set = parse_tokens_from_string_list(string_list = all_enumerated_selfies,
-                                                                     tokenizer = tokenizer)
-    
-    selfies_token_set = parse_tokens_from_string_list(string_list = [selfies],
-                                                      tokenizer = tokenizer)
-    
-    return all_enumerated_selfies_token_set.difference(selfies_token_set)
-
-def enumeration_without_new_token_introduction(selfies: SELFIES,
-                                               tokenizer):
-    
-    new_tokens = new_tokens_in_all_enumerated_selfies(selfies = selfies,
-                                                      tokenizer = tokenizer)
-    
-    return len(new_tokens) == 0
 
 def canonicalize_selfies(selfies: SELFIES):
     

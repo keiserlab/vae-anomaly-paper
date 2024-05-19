@@ -4,8 +4,6 @@
 import numpy as np
 import selfies as sf
 import VAE_chem_utils as chem
-import VAE_utils as util
-
 from deepchem.feat.smiles_tokenizer import BasicSmilesTokenizer
 
 class Process_SMILES_Reps(BasicSmilesTokenizer):

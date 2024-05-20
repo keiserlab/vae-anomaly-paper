@@ -29,3 +29,7 @@ We radially survey the outlier regions of the latent space of a Variational Auto
 ### Generation Demo
 
 To add... 
+
+### Generation Demo Output Bar Chart 
+
+To add... 

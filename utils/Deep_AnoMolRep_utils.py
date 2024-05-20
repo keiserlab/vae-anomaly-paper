@@ -1,9 +1,3 @@
-""" Functions for VAE data analysis and processing
-    Class for random generation using 3 methods:
-        1. naive random
-        2. shuffle random
-        3. sample random
- """
 import matplotlib.pyplot as plt
 import numpy as np
 import random

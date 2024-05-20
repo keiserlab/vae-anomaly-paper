@@ -15,9 +15,6 @@ from rdkit import Chem
 SMILES = NewType('SMILES', str)
 SELFIES = NewType('SELFIES', str)
 
-
-
-
 def get_char_idx_mappers(SMILES_list: List[SMILES]) -> Tuple[np.ndarray, Dict[str, int], set]:
                             
     """ Functions mapping SMILES character to token/index identifier
@@ -166,5 +163,3 @@ def rd_canonicalize(smiles: SMILES) -> SMILES:
     smi = Chem.MolToSmiles(mol)
     
     return smi
-
-

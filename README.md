@@ -25,6 +25,7 @@ We radially survey the outlier regions of the latent space of a Variational Auto
 - deepchem
 - matplotlib
 - scipy
+- duckdb
 ```
 ### Generation Demo
 

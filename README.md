@@ -28,7 +28,7 @@ We radially survey the outlier regions of the latent space of a Variational Auto
 ```
 ### Generation Demo
 
-Jupyter notebook demonstrating generation of SELFIES sets and validity percentage calculation from various VAE latent radii and null generators can be found at [!generation demo](https://github.com/keiserlab/vae-anomaly-paper/blob/main/Generation%20demo.ipynb).
+Jupyter notebook demonstrating generation of SELFIES sets and validity percentage calculation from various VAE latent radii and null generators can be found at [generation demo](https://github.com/keiserlab/vae-anomaly-paper/blob/main/Generation%20demo.ipynb).
 
 ### Generation Demo Output Bar Chart 
 
